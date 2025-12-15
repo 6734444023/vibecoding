@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { doc, updateDoc, onSnapshot, setDoc } from "firebase/firestore";
+import { doc, updateDoc, onSnapshot, setDoc, increment } from "firebase/firestore";
 import Button from "./ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, CheckCircle, XCircle, Timer, Play } from "lucide-react";
@@ -80,6 +80,20 @@ export default function TriviaGame({ chatId, myId, opponentId, opponentName, onC
                     });
                 } else {
                     await updateDoc(gameRef, { status: "finished" });
+
+                    // Update Global Stats
+                    const myFinalScore = (gameState.scores[myKey] || 0) + (isCorrect ? 10 : 0);
+                    const otherFinalScore = gameState.scores[otherKey] || 0;
+
+                    let winnerId = null;
+                    if (myFinalScore > otherFinalScore) winnerId = myId;
+                    else if (otherFinalScore > myFinalScore) winnerId = opponentId;
+
+                    const chatRef = doc(db, "chats", chatId);
+                    const statsUpdate: any = { [`stats.totalGames`]: increment(1) };
+                    if (winnerId) statsUpdate[`stats.${winnerId}.wins`] = increment(1);
+
+                    updateDoc(chatRef, statsUpdate).catch(console.error);
                 }
             }, 2000); // 2 second delay to see processing
         }

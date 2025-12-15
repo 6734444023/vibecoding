@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { doc, updateDoc, onSnapshot, increment } from "firebase/firestore";
 import Button from "../ui/Button";
 import { motion } from "framer-motion";
 import { X, Circle, RotateCcw } from "lucide-react";
@@ -66,8 +66,20 @@ export default function TicTacToe({ chatId, myId, opponentId, opponentName, onCl
             updates.winner = winner;
             const winnerKey = winner === gameState.hostId ? "host" : "guest";
             updates[`scores.${winnerKey}`] = (gameState.scores[winnerKey] || 0) + 1;
+
+            // Update Global Stats
+            const chatRef = doc(db, "chats", chatId);
+            updateDoc(chatRef, {
+                [`stats.${winner}.wins`]: increment(1),
+                [`stats.totalGames`]: increment(1)
+            }).catch(console.error);
+
         } else if (isDraw) {
             updates.winner = "draw";
+            const chatRef = doc(db, "chats", chatId);
+            updateDoc(chatRef, {
+                [`stats.totalGames`]: increment(1)
+            }).catch(console.error);
         }
 
         const gameRef = doc(db, "chats", chatId, "game", "current");

@@ -14,6 +14,10 @@ import { ArrowLeft, Send, Smile, Gamepad2, Trophy, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 
+import Link from "next/link"; // Not used but good practice to keep usually. Removed if strictly cleaning.
+import GSAPParticles from "@/components/GSAPParticles";
+import gsap from "gsap";
+
 export default function ChatPage() {
     const { id: otherUserId } = useParams();
     const { user, loading } = useAuth();
@@ -26,11 +30,38 @@ export default function ChatPage() {
     const [gameActive, setGameActive] = useState(false);
     const [gameStateData, setGameStateData] = useState<any>(null);
     const [showGamePicker, setShowGamePicker] = useState(false);
+    const [chatStats, setChatStats] = useState<any>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const headerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!loading && !user) router.push("/login");
     }, [user, loading, router]);
+
+    // Listen for Chat Stats
+    useEffect(() => {
+        if (!user || !otherUserId) return;
+        const chatId = [user.uid, otherUserId].sort().join("_");
+        const chatRef = doc(db, "chats", chatId);
+        const unsub = onSnapshot(chatRef, (doc) => {
+            if (doc.exists()) {
+                setChatStats(doc.data().stats || {});
+            }
+        });
+        return () => unsub();
+    }, [user, otherUserId]);
+
+    // GSAP Entrance
+    useEffect(() => {
+        if (headerRef.current) {
+            gsap.from(headerRef.current, {
+                y: -50,
+                opacity: 0,
+                duration: 1,
+                ease: "power3.out"
+            });
+        }
+    }, []);
 
     // Fetch Other User
     useEffect(() => {
@@ -215,10 +246,11 @@ export default function ChatPage() {
                 )}
                 {/* Overlay for legibility */}
                 <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+                <GSAPParticles />
             </div>
 
             {/* Header */}
-            <div className="relative z-10 flex items-center justify-between p-4 bg-white/10 backdrop-blur-md border-b border-white/10 text-white shadow-lg">
+            <div ref={headerRef} className="relative z-10 flex items-center justify-between p-4 bg-white/10 backdrop-blur-md border-b border-white/10 text-white shadow-lg">
                 <div className="flex items-center gap-4">
                     <Button variant="ghost" onClick={() => router.push("/lobby")} className="p-2">
                         <ArrowLeft />
@@ -233,6 +265,13 @@ export default function ChatPage() {
                             <div>
                                 <h2 className="font-bold text-lg leading-none">{otherUser.displayName}</h2>
                                 <span className="text-xs text-green-300 opacity-80">Online</span>
+                                {chatStats && (
+                                    <div className="flex gap-2 text-[10px] text-white/50 mt-1">
+                                        <span className="text-cyan-300 font-bold">You: {chatStats[user.uid]?.wins || 0}</span>
+                                        <span>|</span>
+                                        <span className="text-pink-300 font-bold">{otherUser.displayName}: {chatStats[otherUserId as string]?.wins || 0}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ) : (

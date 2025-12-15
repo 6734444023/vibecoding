@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { doc, updateDoc, onSnapshot, increment } from "firebase/firestore";
 import Button from "../ui/Button";
 import { motion } from "framer-motion";
 import { X, Hand, Scissors, RotateCcw } from "lucide-react";
@@ -75,6 +75,20 @@ export default function RockPaperScissors({ chatId, myId, opponentId, opponentNa
             // Update scores
             if (winnerKey !== "draw") {
                 updates[`scores.${winnerKey}`] = (gameState.scores[winnerKey] || 0) + 1;
+
+                // Update Stats
+                const hostUid = gameState.hostId;
+                const guestUid = myId === hostUid ? opponentId : myId;
+                const winnerId = winnerKey === "host" ? hostUid : guestUid;
+
+                const chatRef = doc(db, "chats", chatId);
+                updateDoc(chatRef, {
+                    [`stats.${winnerId}.wins`]: increment(1),
+                    [`stats.totalGames`]: increment(1)
+                }).catch(console.error);
+            } else {
+                const chatRef = doc(db, "chats", chatId);
+                updateDoc(chatRef, { [`stats.totalGames`]: increment(1) }).catch(console.error);
             }
 
             // Auto Reset after delay

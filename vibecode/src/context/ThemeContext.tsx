@@ -48,14 +48,35 @@ export const CHAT_THEMES = [
         }
     },
     // Video example (using a placeholder, user can replace)
+    // Video Themes
     {
         id: "ocean-motion",
         name: "Ocean Motion",
         type: "video",
-        bg: "https://cdn.pixabay.com/vimeo/328229871/waves-23035.mp4?width=1280&hash=123", // Example generic wave video
+        bg: "https://cdn.pixabay.com/video/2022/10/05/133646-757833240_small.mp4",
         bubble: {
             me: "bg-cyan-600/80 backdrop-blur-sm",
             other: "bg-white/30 backdrop-blur-md"
+        }
+    },
+    {
+        id: "cyber-city",
+        name: "Cyber City",
+        type: "video",
+        bg: "https://cdn.pixabay.com/video/2020/06/19/42609-432837311_small.mp4",
+        bubble: {
+            me: "bg-fuchsia-600/80 backdrop-blur-sm shadow-[0_0_10px_rgba(192,38,211,0.5)]",
+            other: "bg-slate-900/60 backdrop-blur-md border border-cyan-500/50"
+        }
+    },
+    {
+        id: "cosmic-flow",
+        name: "Cosmic Flow",
+        type: "video",
+        bg: "https://cdn.pixabay.com/video/2019/05/19/23769-337583863_small.mp4",
+        bubble: {
+            me: "bg-indigo-600/80 backdrop-blur-sm",
+            other: "bg-white/10 backdrop-blur-md border border-white/20"
         }
     }
 ];
