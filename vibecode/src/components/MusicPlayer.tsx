@@ -2,18 +2,30 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Volume2, VolumeX, Play, Pause, Music } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTheme } from "../context/ThemeContext";
 
 const MusicPlayer = () => {
+    const { currentTrack } = useTheme();
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const audioRef = useRef<HTMLAudioElement>(null);
+
+    // Effect to handle track changes
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.src = currentTrack.src;
+            if (isPlaying) {
+                audioRef.current.play().catch(e => console.log("Play interrupted by load", e));
+            }
+        }
+    }, [currentTrack]); // isPlaying is removed to avoid loop, we only react to track change
 
     const togglePlay = () => {
         if (audioRef.current) {
             if (isPlaying) {
                 audioRef.current.pause();
             } else {
-                audioRef.current.play();
+                audioRef.current.play().catch(e => console.error("Play failed", e));
             }
             setIsPlaying(!isPlaying);
         }
@@ -26,20 +38,11 @@ const MusicPlayer = () => {
         }
     };
 
-    // Auto-play on mount (often blocked by browsers, but we try)
+    // Auto-play attempt on mount (low volume)
     useEffect(() => {
-        const playAudio = async () => {
-            if (audioRef.current) {
-                try {
-                    audioRef.current.volume = 0.3; // Low volume for background
-                    // await audioRef.current.play(); // Auto-play is tricky, let user interact first
-                    // setIsPlaying(true);
-                } catch (err) {
-                    console.log("Auto-play blocked", err);
-                }
-            }
-        };
-        playAudio();
+        if (audioRef.current) {
+            audioRef.current.volume = 0.3;
+        }
     }, []);
 
     return (
@@ -50,7 +53,7 @@ const MusicPlayer = () => {
         >
             <div className="flex items-center gap-2">
                 <Music className="w-5 h-5 animate-pulse text-cyan-300" />
-                <span className="text-xs font-medium hidden sm:block">Chill Waves FM</span>
+                <span className="text-xs font-medium hidden sm:block w-24 truncate">{currentTrack.name}</span>
             </div>
 
             <div className="h-4 w-[1px] bg-white/30 mx-1"></div>
@@ -63,11 +66,10 @@ const MusicPlayer = () => {
                 {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
             </button>
 
-            {/* Placeholder for chill lofi beach music */}
             <audio
                 ref={audioRef}
                 loop
-                src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112762.mp3"
+                src={currentTrack.src}
             />
         </motion.div>
     );

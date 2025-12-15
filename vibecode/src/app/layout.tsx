@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google"; // Chill vibe font
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
-import MusicPlayer from "../components/MusicPlayer";
+import { ThemeProvider } from "../context/ThemeContext";
+import ClientLayout from "../components/ClientLayout";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -19,12 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={outfit.className}>
-        <AuthProvider>
-          <MusicPlayer />
-          <main className="min-h-screen relative overflow-hidden">
-            {children}
-          </main>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ClientLayout>
+              {children}
+            </ClientLayout>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
