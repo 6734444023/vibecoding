@@ -10,12 +10,12 @@ import TriviaGame from "@/components/TriviaGame";
 import TicTacToe from "@/components/games/TicTacToe";
 import RockPaperScissors from "@/components/games/RockPaperScissors";
 import Image from "next/image";
-import { ArrowLeft, Send, Smile, Gamepad2, Trophy, X } from "lucide-react";
+import { ArrowLeft, Send, Smile, Gamepad2, Trophy, X, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import EmojiPicker, { Theme } from "emoji-picker-react";
-
-import Link from "next/link"; // Not used but good practice to keep usually. Removed if strictly cleaning.
+import Link from "next/link";
 import GSAPParticles from "@/components/GSAPParticles";
+import VideoCall from "@/components/VideoCall";
 import gsap from "gsap";
 
 export default function ChatPage() {
@@ -31,12 +31,37 @@ export default function ChatPage() {
     const [gameStateData, setGameStateData] = useState<any>(null);
     const [showGamePicker, setShowGamePicker] = useState(false);
     const [chatStats, setChatStats] = useState<any>(null);
+    const [callActive, setCallActive] = useState(false);
+    const [incomingCall, setIncomingCall] = useState(false);
+    const [isCaller, setIsCaller] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const headerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!loading && !user) router.push("/login");
     }, [user, loading, router]);
+
+    // Listen for Incoming Calls
+    useEffect(() => {
+        if (!user || !otherUserId) return;
+        const chatId = [user.uid, otherUserId].sort().join("_");
+        const callDocRef = doc(db, "chats", chatId, "call", "active");
+
+        const unsub = onSnapshot(callDocRef, (doc) => {
+            const data = doc.data();
+            if (data?.offer && !data?.answer && data?.callerId !== user.uid) {
+                setIncomingCall(true);
+            } else {
+                setIncomingCall(false);
+            }
+        });
+        return () => unsub();
+    }, [user, otherUserId]);
+
+    const startCall = () => { setIsCaller(true); setCallActive(true); };
+    const acceptCall = () => { setIsCaller(false); setCallActive(true); setIncomingCall(false); };
+    const endCall = () => { setCallActive(false); setIsCaller(false); };
+
 
     // Listen for Chat Stats
     useEffect(() => {
@@ -226,6 +251,48 @@ export default function ChatPage() {
                 )}
             </AnimatePresence>
 
+            {/* Call Overlay */}
+            <AnimatePresence>
+                {callActive && (
+                    <VideoCall
+                        chatId={chatId}
+                        userId={user.uid}
+                        isCaller={isCaller}
+                        onEndCall={endCall}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Incoming Call Modal */}
+            <AnimatePresence>
+                {incomingCall && !callActive && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-slate-900/95 border border-green-500/50 p-4 rounded-2xl shadow-2xl flex items-center gap-6"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center animate-pulse">
+                                <Phone className="text-green-400" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-white">Incoming Call...</h3>
+                                <p className="text-xs text-white/50">{otherUser?.displayName || "Friend"} is calling</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button onClick={acceptCall} className="bg-green-500 hover:bg-green-600 rounded-full w-10 h-10 p-0 flex items-center justify-center">
+                                <Phone size={18} />
+                            </Button>
+                            <Button onClick={() => setIncomingCall(false)} className="bg-red-500 hover:bg-red-600 rounded-full w-10 h-10 p-0 flex items-center justify-center">
+                                <X size={18} />
+                            </Button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Chat Theme Background Layer */}
             <div className="absolute inset-0 z-0">
                 {currentChatTheme.type === 'video' ? (
@@ -278,6 +345,9 @@ export default function ChatPage() {
                         <div>Loading user...</div>
                     )}
                 </div>
+                <Button onClick={startCall} className="bg-green-500 hover:bg-green-600 rounded-full p-3 shadow-lg shadow-green-500/20">
+                    <Phone size={20} fill="currentColor" />
+                </Button>
             </div>
 
             {/* Messages Area */}
