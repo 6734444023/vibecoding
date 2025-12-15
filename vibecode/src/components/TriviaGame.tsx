@@ -42,6 +42,14 @@ export default function TriviaGame({ chatId, myId, opponentId, opponentName, onC
         return () => unsub();
     }, [chatId]);
 
+    // Reset selection when question changes (Real-time fix)
+    useEffect(() => {
+        if (gameState) {
+            setSelectedAnswer(null);
+            setShowResult(false);
+        }
+    }, [gameState?.currentQIndex]);
+
     // Handle Answer
     const handleAnswer = async (answer: string) => {
         if (selectedAnswer || !gameState) return;
