@@ -6,13 +6,8 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center text-white overflow-hidden">
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/landing-bg.png')" }}
-      >
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
-      </div>
+      {/* Background Image - Removed to use global theme */}
+      {/* <div className="absolute inset-0 z-0..." /> */}
 
       {/* Floating Elements (Chill Decoration) */}
       <motion.div

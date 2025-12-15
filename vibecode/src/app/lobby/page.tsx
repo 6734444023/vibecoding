@@ -45,14 +45,6 @@ export default function LobbyPage() {
 
     return (
         <div className="min-h-screen w-full relative overflow-y-auto">
-            {/* Background */}
-            <div
-                className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: "url('/images/landing-bg.png')" }}
-            >
-                <div className="absolute inset-0 bg-white/10 backdrop-blur-md" /> {/* Lighter blur for lobby */}
-            </div>
-
             <div className="relative z-10 max-w-6xl mx-auto p-6">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-10 bg-white/20 backdrop-blur-lg p-4 rounded-full shadow-lg border border-white/30">

@@ -20,13 +20,8 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
-      {/* Background Image (Night Mode) */}
-      <div
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/login-bg.png')" }}
-      >
-        <div className="absolute inset-0 bg-indigo-900/40 backdrop-blur-sm" />
-      </div>
+      {/* Background Image - Removed to use global theme */}
+      {/* <div className="absolute inset-0 z-0..." /> */}
 
       {/* Login Card */}
       <motion.div
